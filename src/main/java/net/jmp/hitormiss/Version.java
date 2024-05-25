@@ -35,7 +35,7 @@ package net.jmp.hitormiss;
  */
 public final class Version {
     /** The version. */
-    final static String VERSION_STRING = "0.1.0";
+    static final String VERSION_STRING = "0.1.0";
 
     /**
      * The default constructor.
