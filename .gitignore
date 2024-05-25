@@ -1,0 +1,7 @@
+.gradle
+.idea
+build
+gradle/*
+!gradle/libs.versions.toml
+gradlew
+target
