@@ -1,11 +1,11 @@
-package net.jmp.hitormiss.config;
+package net.jmp.hitormiss.data;
 
 /*
- * (#)Config.java   0.1.0   05/25/2024
+ * (#)DataElement.java  0.1.0   05/26/2024
  *
- * @author    Jonathan Parker
- * @version   0.1.0
- * @since     0.1.0
+ * @author   Jonathan Parker
+ * @version  0.1.0
+ * @since    0.1.0
  *
  * MIT License
  *
@@ -30,56 +30,48 @@ package net.jmp.hitormiss.config;
  * SOFTWARE.
  */
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.Objects;
 
-/**
- * The configuration class.
- */
-public final class Config {
-    /** The application component. */
-    @SerializedName("application")
-    private Application application;
+public final class DataElement {
+    /** The key of the containing bucket expressed as an integer without the prefix. */
+    private int keyAsInt;
 
-    /** The Redis component. */
-    @SerializedName("redis")
-    private Redis redis;
+    /** The value contained in the bucket. */
+    private String value;
 
     /**
-     * Get the Redis component
-     *
-     * @return  net.jmp.hitormiss.config.Redis
+     * The default constructor.
      */
-    public Redis getRedis() {
-        return this.redis;
+    private DataElement() {
+        super();
     }
 
     /**
-     * Set the Redis component.
+     * The constructor.
      *
-     * @param   redis   net.jmp.hitormiss.config.Redis
+     * @param   keyAsInt    int
+     * @param   value       java.lang.String
      */
-    public void setRedis(final Redis redis) {
-        this.redis = redis;
+    public DataElement(final int keyAsInt, final String value) {
+        this.keyAsInt = keyAsInt;
     }
 
     /**
-     * Get the application component
+     * Return the key expressed as an integer.
      *
-     * @return  net.jmp.hitormiss.config.Application
+     * @return  int
      */
-    public Application getApplication() {
-        return this.application;
+    public int getKeyAsInt() {
+        return this.keyAsInt;
     }
 
     /**
-     * Set the application component.
+     * Return the value.
      *
-     * @param   application net.jmp.hitormiss.config.Application
+     * @return  java.lang.String
      */
-    public void setApplication(final Application application) {
-        this.application = application;
+    public String getValue() {
+        return this.value;
     }
 
     /**
@@ -89,14 +81,14 @@ public final class Config {
      * @return      boolean
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        final Config config = (Config) o;
+        final DataElement that = (DataElement) o;
 
-        return Objects.equals(this.application, config.application) && Objects.equals(this.redis, config.redis);
+        return keyAsInt == that.keyAsInt && Objects.equals(value, that.value);
     }
 
     /**
@@ -106,9 +98,9 @@ public final class Config {
      */
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(this.application);
+        int result = this.keyAsInt;
 
-        result = 31 * result + Objects.hashCode(this.redis);
+        result = 31 * result + Objects.hashCode(this.value);
 
         return result;
     }
@@ -120,9 +112,9 @@ public final class Config {
      */
     @Override
     public String toString() {
-        return "Config{" +
-                "application=" + this.application +
-                ", redis=" + this.redis +
+        return "DataElement{" +
+                "keyAsInt=" + this.keyAsInt +
+                ", value='" + this.value + '\'' +
                 '}';
     }
 }

@@ -37,13 +37,16 @@
         </encoder>
     </appender>
 
-    <logger name="net.jmp.hitormiss.Connector" additivity="false" level="debug">
+    <logger name="net.jmp.hitormiss.Connector" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="net.jmp.hitormiss.Main" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="org.redisson.connection.ConnectionsHolder" additivity="false" level="off">
+        <appender-ref ref="MAIN" />
+    </logger>
+    <logger name="net.jmp.hitormiss.data.DataManager" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
     <logger name="org.redisson.Version" additivity="false" level="info">

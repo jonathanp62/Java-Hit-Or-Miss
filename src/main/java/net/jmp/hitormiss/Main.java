@@ -34,8 +34,8 @@ import com.google.gson.Gson;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-
 import java.io.InputStreamReader;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -51,6 +51,8 @@ import org.slf4j.ext.XLogger;
 
 import net.jmp.hitormiss.config.Config;
 
+import net.jmp.hitormiss.data.DataManager;
+
 /*
  * The application's main class.
  */
@@ -63,6 +65,9 @@ public final class Main {
 
     /** A regular expression pattern to get the version from the 'redis-server --version' command. */
     private final Pattern versionPattern = Pattern.compile("(?i)\\.*v=(?<version>.+?)\\s(?-i)");
+
+    /** The data manager. */
+    private DataManager dataManager;
 
     /**
      * The default constructor.
@@ -86,9 +91,16 @@ public final class Main {
                 client = this.getClient(appConfig);
 
                 this.logServerVersion(appConfig);
+
+                this.dataManager = new DataManager(appConfig, client);
+
+                this.dataManager.setupData();
             } catch (final IOException ioe) {
                 this.logger.catching(ioe);
             } finally {
+                if (this.dataManager != null)
+                    this.dataManager.teardownData();
+
                 if (client != null) {
                     Connector.disconnect(client);
 

@@ -1,7 +1,7 @@
 package net.jmp.hitormiss.config;
 
 /*
- * (#)Config.java   0.1.0   05/25/2024
+ * (#)Application.java  0.1.0   05/26/2024
  *
  * @author    Jonathan Parker
  * @version   0.1.0
@@ -35,51 +35,51 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
 
 /**
- * The configuration class.
+ * The application configuration class.
  */
-public final class Config {
-    /** The application component. */
-    @SerializedName("application")
-    private Application application;
+public final class Application {
+    /** The bucket key prefix. */
+    @SerializedName("bucketKeyPrefix")
+    private String bucketKeyPrefix;
 
-    /** The Redis component. */
-    @SerializedName("redis")
-    private Redis redis;
+    /** The initial number of buckets to create. */
+    @SerializedName("initialNumberOfBuckets")
+    private int initialNumberOfBuckets;
 
     /**
-     * Get the Redis component
+     * Get the bucket key prefix.
      *
-     * @return  net.jmp.hitormiss.config.Redis
+     * @return  java.lang.String
      */
-    public Redis getRedis() {
-        return this.redis;
+    public String getBucketKeyPrefix() {
+        return this.bucketKeyPrefix;
     }
 
     /**
-     * Set the Redis component.
+     * Set the bucket key prefix.
      *
-     * @param   redis   net.jmp.hitormiss.config.Redis
+     * @param   bucketKeyPrefix java.lang.String
      */
-    public void setRedis(final Redis redis) {
-        this.redis = redis;
+    public void setBucketKeyPrefix(final String bucketKeyPrefix) {
+        this.bucketKeyPrefix = bucketKeyPrefix;
     }
 
     /**
-     * Get the application component
+     * Get the initial number of buckets to create.
      *
-     * @return  net.jmp.hitormiss.config.Application
+     * @return  int
      */
-    public Application getApplication() {
-        return this.application;
+    public int getInitialNumberOfBuckets() {
+        return this.initialNumberOfBuckets;
     }
 
     /**
-     * Set the application component.
+     * Set the initial number of buckets to create.
      *
-     * @param   application net.jmp.hitormiss.config.Application
+     * @param   initialNumberOfBuckets  int
      */
-    public void setApplication(final Application application) {
-        this.application = application;
+    public void setInitialNumberOfBuckets(final int initialNumberOfBuckets) {
+        this.initialNumberOfBuckets = initialNumberOfBuckets;
     }
 
     /**
@@ -94,9 +94,9 @@ public final class Config {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        final Config config = (Config) o;
+        final Application that = (Application) o;
 
-        return Objects.equals(this.application, config.application) && Objects.equals(this.redis, config.redis);
+        return this.initialNumberOfBuckets == that.initialNumberOfBuckets && Objects.equals(this.bucketKeyPrefix, that.bucketKeyPrefix);
     }
 
     /**
@@ -106,9 +106,9 @@ public final class Config {
      */
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(this.application);
+        int result = Objects.hashCode(this.bucketKeyPrefix);
 
-        result = 31 * result + Objects.hashCode(this.redis);
+        result = 31 * result + this.initialNumberOfBuckets;
 
         return result;
     }
@@ -120,9 +120,9 @@ public final class Config {
      */
     @Override
     public String toString() {
-        return "Config{" +
-                "application=" + this.application +
-                ", redis=" + this.redis +
+        return "Application{" +
+                "bucketKeyPrefix='" + this.bucketKeyPrefix + '\'' +
+                ", initialNumberOfBuckets=" + this.initialNumberOfBuckets +
                 '}';
     }
 }

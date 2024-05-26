@@ -158,7 +158,7 @@ public final class Redis {
         return "Redis{" +
                 "hostName='" + this.hostName + '\'' +
                 ", port=" + this.port +
-                ", protocol=" + this.protocol +
+                ", protocol='" + this.protocol +'\'' +
                 ", serverCLI=" + this.serverCLI +
                 '}';
     }
