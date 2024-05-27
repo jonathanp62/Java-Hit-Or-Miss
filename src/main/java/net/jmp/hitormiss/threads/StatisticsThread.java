@@ -114,15 +114,13 @@ public final class StatisticsThread implements Runnable {
                 if (!this.synchronizer.isNotified()) {
                     try {
                         this.synchronizer.wait();
-                        this.synchronizer.setNotified(false);
                     } catch (final InterruptedException ie) {
                         this.logger.catching(ie);
-                        this.synchronizer.setNotified(false);
                         Thread.currentThread().interrupt();     // Restore the interrupt status
                     }
-                } else {
-                    this.synchronizer.setNotified(true);
                 }
+
+                this.synchronizer.setNotified(false);
 
                 shutdown = this.processRequestQueue(hits, misses);
             }
