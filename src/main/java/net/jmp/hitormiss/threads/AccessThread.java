@@ -1,7 +1,7 @@
 package net.jmp.hitormiss.threads;
 
 /*
- * (#)StatisticsThread.java 0.2.0   05/27/2024
+ * (#)AccessThread.java 0.2.0   05/27/2024
  *
  * @author   Jonathan Parker
  * @version  0.2.0
@@ -31,6 +31,7 @@ package net.jmp.hitormiss.threads;
  */
 
 import net.jmp.hitormiss.config.Config;
+
 import net.jmp.hitormiss.util.Synchronizer;
 
 import org.redisson.api.RedissonClient;
@@ -39,14 +40,11 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.ext.XLogger;
 
 /**
- * The thread that captures and persists statistics.
+ * The thread that access Redis buckets like a cache.
  */
-public final class StatisticsThread implements Runnable {
+public final class AccessThread implements Runnable {
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
-
-    /** The synchronizer. */
-    private final Synchronizer synchronizer = new Synchronizer();
 
     /** The configuration. */
     private final Config config;
@@ -57,23 +55,15 @@ public final class StatisticsThread implements Runnable {
     /**
      * The constructor.
      *
-     * @param   config  net.jmp.hitormiss.config.Config
-     * @param   client  org.redisson.api.RedissonClient
+     * @param   config                  net.jmp.hitormiss.config.Config
+     * @param   client                  org.redisson.api.RedissonClient
+     * @param   statisticsSynchronizer  net.jmp.hitormiss.util.Synchronizer
      */
-    public StatisticsThread(final Config config, final RedissonClient client) {
+    public AccessThread(final Config config, final RedissonClient client, final Synchronizer statisticsSynchronizer) {
         super();
 
         this.config = config;
         this.client = client;
-    }
-
-    /**
-     * Return the synchronizer.
-     *
-     * @return  net.jmp.hitormiss.util.Synchronizer
-     */
-    public Synchronizer getSynchronizer() {
-        return this.synchronizer;
     }
 
     /**
@@ -83,23 +73,10 @@ public final class StatisticsThread implements Runnable {
     public void run() {
         this.logger.entry();
 
-        while (true) {
-            synchronized (this.synchronizer) {
-                if (!this.synchronizer.isNotified()) {
-                    try {
-                        this.synchronizer.wait();
-                        this.synchronizer.setNotified(false);
+        final int counter = this.config.getApplication().getInitialNumberOfBuckets() * 3;
 
-                        break;
-                    } catch (final InterruptedException ie) {
-                        this.logger.catching(ie);
-                        this.synchronizer.setNotified(false);
-                        Thread.currentThread().interrupt();     // Restore the interrupt status
-                    }
-                } else {
-                    this.synchronizer.setNotified(true);
-                }
-            }
+        for (int i = 0; i < counter; i++) {
+            ;
         }
 
         this.logger.exit();

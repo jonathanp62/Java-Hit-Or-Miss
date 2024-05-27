@@ -44,6 +44,7 @@ import java.util.Optional;
 
 import java.util.regex.Pattern;
 
+import net.jmp.hitormiss.threads.AccessThread;
 import net.jmp.hitormiss.util.Synchronizer;
 import org.redisson.api.RedissonClient;
 
@@ -105,7 +106,10 @@ public final class Main {
                 this.dataManager = new DataManager(appConfig, client);
 
                 this.dataManager.setupData();
-                this.startStatisticsThread();
+
+                this.startStatisticsThread(appConfig, client);
+
+                this.runAccessThread(appConfig, client);
             } catch (final IOException ioe) {
                 this.logger.catching(ioe);
             } finally {
@@ -231,14 +235,41 @@ public final class Main {
 
     /**
      * Start the statistics thread.
+     *
+     * @param   config  net.jmp.hitormiss.config.Config
+     * @param   client  org.redisson.api.RedissonClient
      */
-    private void startStatisticsThread() {
-        this.logger.entry();
+    private void startStatisticsThread(final Config config, final RedissonClient client) {
+        this.logger.entry(config, client);
 
-        this.statisticsThreadObject = new StatisticsThread();
+        this.statisticsThreadObject = new StatisticsThread(config, client);
         this.statisticsThread = new Thread(this.statisticsThreadObject, "statistics");
 
         this.statisticsThread.start();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Run the data access thread.
+     *
+     * @param   config  net.jmp.hitormiss.config.Config
+     * @param   client  org.redisson.api.RedissonClient
+     */
+    private void runAccessThread(final Config config, final RedissonClient client) {
+        this.logger.entry(config, client);
+
+        final Synchronizer statisticsSynchronizer = this.statisticsThreadObject.getSynchronizer();
+        final Thread accessThread = new Thread(new AccessThread(config, client, statisticsSynchronizer));
+
+        accessThread.start();
+
+        try {
+            accessThread.join();
+        } catch (final InterruptedException ie) {
+            this.logger.catching(ie);
+            Thread.currentThread().interrupt();
+        }
 
         this.logger.exit();
     }

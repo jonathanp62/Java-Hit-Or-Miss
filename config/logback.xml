@@ -47,6 +47,9 @@
     <logger name="net.jmp.hitormiss.data.DataManager" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
+    <logger name="net.jmp.hitormiss.threads.AccessThread" additivity="false" level="trace">
+        <appender-ref ref="MAIN" />
+    </logger>
     <logger name="net.jmp.hitormiss.threads.StatisticsThread" additivity="false" level="trace">
         <appender-ref ref="MAIN" />
     </logger>
