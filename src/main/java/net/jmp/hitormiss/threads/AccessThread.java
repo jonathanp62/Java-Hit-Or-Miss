@@ -32,9 +32,11 @@ package net.jmp.hitormiss.threads;
 
 import net.jmp.hitormiss.config.Config;
 
-import net.jmp.hitormiss.util.Synchronizer;
+import net.jmp.hitormiss.data.RequestQueueElement;
+import net.jmp.hitormiss.data.RequestType;
 
 import org.redisson.api.RedissonClient;
+
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -52,18 +54,22 @@ public final class AccessThread implements Runnable {
     /** The Redisson client. */
     private final RedissonClient client;
 
+    /** The statistics thread. */
+    private final StatisticsThread statisticsThread;
+
     /**
      * The constructor.
      *
-     * @param   config                  net.jmp.hitormiss.config.Config
-     * @param   client                  org.redisson.api.RedissonClient
-     * @param   statisticsSynchronizer  net.jmp.hitormiss.util.Synchronizer
+     * @param   config              net.jmp.hitormiss.config.Config
+     * @param   client              org.redisson.api.RedissonClient
+     * @param   statisticsThread    net.jmp.hitormiss.threads.StatisticsThread
      */
-    public AccessThread(final Config config, final RedissonClient client, final Synchronizer statisticsSynchronizer) {
+    public AccessThread(final Config config, final RedissonClient client, final StatisticsThread statisticsThread) {
         super();
 
         this.config = config;
         this.client = client;
+        this.statisticsThread = statisticsThread;
     }
 
     /**
@@ -75,9 +81,24 @@ public final class AccessThread implements Runnable {
 
         final int counter = this.config.getApplication().getInitialNumberOfBuckets() * 3;
 
+        final var requestQueue = this.statisticsThread.getRequestQueue();
+        final var synchronizer = this.statisticsThread.getSynchronizer();
+
         for (int i = 0; i < counter; i++) {
-            ;
+            // Get the bucket and determine if it is a hit or miss
+
+            synchronized (synchronizer) {
+                if (i % 3 == 0)
+                    requestQueue.offer(new RequestQueueElement(RequestType.HIT));
+                else
+                    requestQueue.offer(new RequestQueueElement(RequestType.MISS));
+
+                synchronizer.setNotified(true);
+                synchronizer.notifyAll();
+            }
         }
+
+        this.logger.info("Access thread is exiting");
 
         this.logger.exit();
     }

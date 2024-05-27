@@ -34,7 +34,7 @@
 <configuration scan="false" scanPeriod="60 seconds" packagingData="false" debug="false">
     <appender name="MAIN" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{ISO8601} %-5level [%logger] [%M] %msg%n</pattern>
+            <pattern>%d{ISO8601} [%-10.10t] %-5level [%logger] [%M] %msg%n</pattern>
         </encoder>
     </appender>
 

@@ -40,12 +40,18 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import java.util.Deque;
 import java.util.Optional;
 
 import java.util.regex.Pattern;
 
+import net.jmp.hitormiss.data.RequestQueueElement;
+import net.jmp.hitormiss.data.RequestType;
+
 import net.jmp.hitormiss.threads.AccessThread;
+
 import net.jmp.hitormiss.util.Synchronizer;
+
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
@@ -259,8 +265,7 @@ public final class Main {
     private void runAccessThread(final Config config, final RedissonClient client) {
         this.logger.entry(config, client);
 
-        final Synchronizer statisticsSynchronizer = this.statisticsThreadObject.getSynchronizer();
-        final Thread accessThread = new Thread(new AccessThread(config, client, statisticsSynchronizer));
+        final Thread accessThread = new Thread(new AccessThread(config, client, this.statisticsThreadObject), "access");
 
         accessThread.start();
 
@@ -281,8 +286,11 @@ public final class Main {
         this.logger.entry();
 
         final Synchronizer synchronizer = this.statisticsThreadObject.getSynchronizer();
+        final Deque<RequestQueueElement> requestQueue = this.statisticsThreadObject.getRequestQueue();
 
         synchronized (synchronizer) {
+            requestQueue.offer(new RequestQueueElement(RequestType.SHUTDOWN));
+
             synchronizer.setNotified(true);
             synchronizer.notifyAll();
         }

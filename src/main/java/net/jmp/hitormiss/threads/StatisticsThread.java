@@ -30,10 +30,19 @@ package net.jmp.hitormiss.threads;
  * SOFTWARE.
  */
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import net.jmp.hitormiss.config.Config;
+
+import net.jmp.hitormiss.data.RequestQueueElement;
+import net.jmp.hitormiss.data.RequestType;
+
 import net.jmp.hitormiss.util.Synchronizer;
 
 import org.redisson.api.RedissonClient;
+
 import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
@@ -47,6 +56,9 @@ public final class StatisticsThread implements Runnable {
 
     /** The synchronizer. */
     private final Synchronizer synchronizer = new Synchronizer();
+
+    /** The request queue. */
+    private final Deque<RequestQueueElement> requestQueue = new ArrayDeque<>();
 
     /** The configuration. */
     private final Config config;
@@ -77,20 +89,32 @@ public final class StatisticsThread implements Runnable {
     }
 
     /**
+     * Return the request queue.
+     *
+     * @return  java.util.Deque&lt;net.jmp.hitormiss.data.RequestQueueElement&gt;
+     */
+    public Deque<RequestQueueElement> getRequestQueue() {
+        return this.requestQueue;
+    }
+
+    /**
      * The run method.
      */
     @Override
     public void run() {
         this.logger.entry();
 
-        while (true) {
+        boolean shutdown = false;
+
+        final AtomicInteger hits = new AtomicInteger(0);
+        final AtomicInteger misses = new AtomicInteger(0);
+
+        while (!shutdown) {
             synchronized (this.synchronizer) {
                 if (!this.synchronizer.isNotified()) {
                     try {
                         this.synchronizer.wait();
                         this.synchronizer.setNotified(false);
-
-                        break;
                     } catch (final InterruptedException ie) {
                         this.logger.catching(ie);
                         this.synchronizer.setNotified(false);
@@ -99,9 +123,48 @@ public final class StatisticsThread implements Runnable {
                 } else {
                     this.synchronizer.setNotified(true);
                 }
+
+                shutdown = this.processRequestQueue(hits, misses);
             }
         }
 
+        this.logger.info("Hits  : {}", hits.get());
+        this.logger.info("Misses: {}", misses.get());
+
+        this.logger.info("Statistics thread is exiting");
+
         this.logger.exit();
+    }
+
+    /**
+     * Process the request queue. Note that hits
+     * and misses are updated and hence not final.
+     * True is returned if shutdown was requested.
+     *
+     * @param   hits    Integer
+     * @param   misses  Integer
+     * @return          boolean
+     */
+    private boolean processRequestQueue(final AtomicInteger hits, final AtomicInteger misses) {
+        this.logger.entry(hits, misses);
+
+        boolean shutdown = false;
+
+        while (this.requestQueue.peek() != null) {
+            final var requestElement = this.requestQueue.poll();
+
+            if (requestElement.getRequestType() == RequestType.HIT)
+                hits.incrementAndGet();
+
+            if (requestElement.getRequestType() == RequestType.MISS)
+                misses.incrementAndGet();
+
+            if (requestElement.getRequestType() == RequestType.SHUTDOWN)
+                shutdown = true;
+        }
+
+        this.logger.exit(shutdown);
+
+        return shutdown;
     }
 }
