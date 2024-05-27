@@ -1,10 +1,11 @@
 package net.jmp.hitormiss;
 
 /*
+ * (#)Main.java 0.2.0   05/27/2024
  * (#)Main.java 0.1.0   05/25/2024
  *
  * @author   Jonathan Parker
- * @version  0.1.0
+ * @version  0.2.0
  * @since    0.1.0
  *
  * MIT License
@@ -43,6 +44,7 @@ import java.util.Optional;
 
 import java.util.regex.Pattern;
 
+import net.jmp.hitormiss.util.Synchronizer;
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,8 @@ import org.slf4j.ext.XLogger;
 import net.jmp.hitormiss.config.Config;
 
 import net.jmp.hitormiss.data.DataManager;
+
+import net.jmp.hitormiss.threads.StatisticsThread;
 
 /*
  * The application's main class.
@@ -68,6 +72,12 @@ public final class Main {
 
     /** The data manager. */
     private DataManager dataManager;
+
+    /** The statistics thread object. */
+    private StatisticsThread statisticsThreadObject;
+
+    /** The statistics thread. */
+    private Thread statisticsThread;
 
     /**
      * The default constructor.
@@ -95,9 +105,12 @@ public final class Main {
                 this.dataManager = new DataManager(appConfig, client);
 
                 this.dataManager.setupData();
+                this.startStatisticsThread();
             } catch (final IOException ioe) {
                 this.logger.catching(ioe);
             } finally {
+                this.stopStatisticsThread();
+
                 if (this.dataManager != null)
                     this.dataManager.teardownData();
 
@@ -211,6 +224,43 @@ public final class Main {
         } catch (final InterruptedException ie) {
             this.logger.catching(ie);
             Thread.currentThread().interrupt();     // Restore the interrupt status
+        }
+
+        this.logger.exit();
+    }
+
+    /**
+     * Start the statistics thread.
+     */
+    private void startStatisticsThread() {
+        this.logger.entry();
+
+        this.statisticsThreadObject = new StatisticsThread();
+        this.statisticsThread = new Thread(this.statisticsThreadObject, "statistics");
+
+        this.statisticsThread.start();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Stop the statistics thread.
+     */
+    private void stopStatisticsThread() {
+        this.logger.entry();
+
+        final Synchronizer synchronizer = this.statisticsThreadObject.getSynchronizer();
+
+        synchronized (synchronizer) {
+            synchronizer.setNotified(true);
+            synchronizer.notifyAll();
+        }
+
+        try {
+            this.statisticsThread.join();
+        } catch (final InterruptedException ie) {
+            this.logger.catching(ie);
+            Thread.currentThread().interrupt();
         }
 
         this.logger.exit();
