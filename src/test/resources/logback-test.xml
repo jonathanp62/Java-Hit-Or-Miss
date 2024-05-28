@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
- (#)logback.xml 0.3.0   05/28/2024
- (#)logback.xml 0.2.0   05/27/2024
- (#)logback.xml 0.1.0   05/25/2024
+ (#)logback-test.xml    0.3.0   05/28/2024
 
  @author   Jonathan Parker
  @version  0.3.0
- @since    0.1.0
+ @since    0.3.0
 
  MIT License
 
@@ -39,28 +37,7 @@
         </encoder>
     </appender>
 
-    <logger name="net.jmp.hitormiss.Connector" additivity="false" level="info">
-        <appender-ref ref="MAIN" />
-    </logger>
-    <logger name="net.jmp.hitormiss.Main" additivity="false" level="info">
-        <appender-ref ref="MAIN" />
-    </logger>
-    <logger name="net.jmp.hitormiss.data.DataManager" additivity="false" level="info">
-        <appender-ref ref="MAIN" />
-    </logger>
-    <logger name="net.jmp.hitormiss.threads.AccessThread" additivity="false" level="trace">
-        <appender-ref ref="MAIN" />
-    </logger>
-    <logger name="net.jmp.hitormiss.threads.StatisticsThread" additivity="false" level="trace">
-        <appender-ref ref="MAIN" />
-    </logger>
-    <logger name="net.jmp.hitormiss.util.RandomNumberGenerator" additivity="false" level="trace">
-        <appender-ref ref="MAIN" />
-    </logger>
-    <logger name="org.redisson.connection.ConnectionsHolder" additivity="false" level="off">
-        <appender-ref ref="MAIN" />
-    </logger>
-    <logger name="org.redisson.Version" additivity="false" level="info">
+    <logger name="net.jmp.hitormiss.util.RandomNumberGenerator" additivity="false" level="off">
         <appender-ref ref="MAIN" />
     </logger>
 
