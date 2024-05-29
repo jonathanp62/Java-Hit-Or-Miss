@@ -1,10 +1,11 @@
 package net.jmp.hitormiss.data;
 
 /*
+ * (#)DataElement.java  0.3.0   05/29/2024
  * (#)DataElement.java  0.1.0   05/26/2024
  *
  * @author   Jonathan Parker
- * @version  0.1.0
+ * @version  0.3.0
  * @since    0.1.0
  *
  * MIT License
@@ -53,7 +54,10 @@ public final class DataElement {
      * @param   value       java.lang.String
      */
     public DataElement(final int keyAsInt, final String value) {
+        this();
+
         this.keyAsInt = keyAsInt;
+        this.value = value;
     }
 
     /**

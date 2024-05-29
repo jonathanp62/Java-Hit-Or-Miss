@@ -1,10 +1,11 @@
 package net.jmp.hitormiss.threads;
 
 /*
+ * (#)AccessThread.java 0.3.0   05/29/2024
  * (#)AccessThread.java 0.2.0   05/27/2024
  *
  * @author   Jonathan Parker
- * @version  0.2.0
+ * @version  0.3.0
  * @since    0.2.0
  *
  * MIT License
@@ -32,9 +33,13 @@ package net.jmp.hitormiss.threads;
 
 import net.jmp.hitormiss.config.Config;
 
+import net.jmp.hitormiss.data.DataElement;
 import net.jmp.hitormiss.data.RequestQueueElement;
 import net.jmp.hitormiss.data.RequestType;
 
+import net.jmp.hitormiss.util.RandomNumberGenerator;
+
+import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
@@ -84,11 +89,21 @@ public final class AccessThread implements Runnable {
         final var requestQueue = this.statisticsThread.getRequestQueue();
         final var synchronizer = this.statisticsThread.getSynchronizer();
 
+        final RandomNumberGenerator generator = new RandomNumberGenerator(1, counter);
+        final String bucketKeyPrefix = this.config.getApplication().getBucketKeyPrefix();
+
         for (int i = 0; i < counter; i++) {
             // Get the bucket and determine if it is a hit or miss
 
+            final String bucketKey = bucketKeyPrefix + generator.generate();
+            final RBucket<DataElement> bucket = this.client.getBucket(bucketKey);
+            final DataElement dataElement = bucket.get();
+
+            if (dataElement != null && this.logger.isDebugEnabled())
+                this.logger.debug("Hit on data element: {}", dataElement.toString());
+
             synchronized (synchronizer) {
-                if (i % 3 == 0)
+                if (dataElement != null)
                     requestQueue.offer(new RequestQueueElement(RequestType.HIT));
                 else
                     requestQueue.offer(new RequestQueueElement(RequestType.MISS));
