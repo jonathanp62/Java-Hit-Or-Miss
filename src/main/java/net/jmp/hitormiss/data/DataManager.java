@@ -1,10 +1,11 @@
 package net.jmp.hitormiss.data;
 
 /*
+ * (#)DataManager.java  0.3.0   05/29/2024
  * (#)DataManager.java  0.1.0   05/26/2024
  *
  * @author   Jonathan Parker
- * @version  0.1.0
+ * @version  0.3.0
  * @since    0.1.0
  *
  * MIT License
@@ -80,6 +81,18 @@ public final class DataManager {
     public void setupData() {
         this.logger.entry();
 
+        this.setupDataElementBuckets();
+        this.setupAccumulatorBuckets();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Set up the data element buckets.
+     */
+    private void setupDataElementBuckets() {
+        this.logger.entry();
+
         final String bucketKeyPrefix = this.config.getApplication().getBucketKeyPrefix();
         final int initialNumberOfBuckets = this.config.getApplication().getInitialNumberOfBuckets();
 
@@ -97,10 +110,40 @@ public final class DataManager {
     }
 
     /**
+     * Set up the accumulator buckets.
+     */
+    private void setupAccumulatorBuckets() {
+        this.logger.entry();
+
+        final var hitsBucketName = this.config.getApplication().getAccumulatorBucketNameForHits();
+        final var missesBucketName = this.config.getApplication().getAccumulatorBucketNameForMisses();
+
+        final RBucket<Integer> hitsBucket = this.client.getBucket(hitsBucketName);
+        final RBucket<Integer> missesBucket = this.client.getBucket(missesBucketName);
+
+        hitsBucket.set(0);
+        missesBucket.set(0);
+
+        this.logger.exit();
+    }
+
+    /**
      * Tear down the data used to
      * provide cache hits and misses.
      */
     public void teardownData() {
+        this.logger.entry();
+
+        this.teardownAccumulatorBuckets();
+        this.teardownDataElementBuckets();
+
+        this.logger.exit();
+    }
+
+    /**
+     * Tear down the data element buckets.
+     */
+    private void teardownDataElementBuckets() {
         this.logger.entry();
 
         final Pattern pattern = Pattern.compile("^" + this.config.getApplication().getBucketKeyPrefix() + "\\d+$");
@@ -113,9 +156,7 @@ public final class DataManager {
             final Matcher matcher = pattern.matcher(key);
 
             if (matcher.matches()) {
-                if (!this.client.getBucket(key).delete()) {
-                    this.logger.error("Failed to delete bucket '{}'", key);
-
+                if (!this.deleteBucket(key)) {
                     deleteCountNotOK.incrementAndGet();
                 } else {
                     deleteCountOK.incrementAndGet();
@@ -127,5 +168,43 @@ public final class DataManager {
         this.logger.info("{} buckets failed to be deleted", deleteCountNotOK.get());
 
         this.logger.exit();
+    }
+
+    /**
+     * Tear down the accumulator buckets.
+     */
+    private void teardownAccumulatorBuckets() {
+        this.logger.entry();
+
+        final var hitsBucketName = this.config.getApplication().getAccumulatorBucketNameForHits();
+        final var missesBucketName = this.config.getApplication().getAccumulatorBucketNameForMisses();
+
+        this.deleteBucket(missesBucketName);
+        this.deleteBucket(hitsBucketName);
+
+        this.logger.exit();
+    }
+
+    /**
+     * Delete the specified bucket.
+     * True is returned if the
+     * bucket was deleted okay.
+     *
+     * @param   key java.lang.String
+     * @return      boolean
+     */
+    private boolean deleteBucket(final String key) {
+        this.logger.entry(key);
+
+        boolean result = false;
+
+        if (!this.client.getBucket(key).delete())
+            this.logger.error("Failed to delete bucket '{}'", key);
+        else
+            result = true;
+
+        this.logger.exit(result);
+
+        return result;
     }
 }

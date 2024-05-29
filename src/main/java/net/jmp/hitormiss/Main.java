@@ -1,11 +1,12 @@
 package net.jmp.hitormiss;
 
 /*
+ * (#)Main.java 0.3.0   05/29/2024
  * (#)Main.java 0.2.0   05/27/2024
  * (#)Main.java 0.1.0   05/25/2024
  *
  * @author   Jonathan Parker
- * @version  0.2.0
+ * @version  0.3.0
  * @since    0.1.0
  *
  * MIT License
@@ -112,14 +113,14 @@ public final class Main {
                 this.dataManager = new DataManager(appConfig, client);
 
                 this.dataManager.setupData();
-
                 this.startStatisticsThread(appConfig, client);
-
                 this.runAccessThread(appConfig, client);
             } catch (final IOException ioe) {
                 this.logger.catching(ioe);
             } finally {
                 this.stopStatisticsThread();
+
+                // Log the contents of the accumulator buckets
 
                 if (this.dataManager != null)
                     this.dataManager.teardownData();

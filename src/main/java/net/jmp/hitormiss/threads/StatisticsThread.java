@@ -1,10 +1,11 @@
 package net.jmp.hitormiss.threads;
 
 /*
+ * (#)StatisticsThread.java 0.3.0   05/29/2024
  * (#)StatisticsThread.java 0.2.0   05/27/2024
  *
  * @author   Jonathan Parker
- * @version  0.2.0
+ * @version  0.3.0
  * @since    0.2.0
  *
  * MIT License
@@ -123,11 +124,15 @@ public final class StatisticsThread implements Runnable {
                 this.synchronizer.setNotified(false);
 
                 shutdown = this.processRequestQueue(hits, misses);
+
+                // Update accumulator buckets
             }
         }
 
         this.logger.info("Hits  : {}", hits.get());
         this.logger.info("Misses: {}", misses.get());
+
+        // Update accumulator bucket for the last time
 
         this.logger.info("Statistics thread is exiting");
 

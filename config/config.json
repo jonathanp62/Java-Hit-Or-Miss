@@ -1,5 +1,7 @@
 {
   "application": {
+    "accumulatorBucketNameForHits": "hit-or-miss-hits",
+    "accumulatorBucketNameForMisses": "hit-or-miss-misses",
     "bucketKeyPrefix": "DE-",
     "initialNumberOfBuckets": 1000
   },

@@ -1,10 +1,11 @@
 package net.jmp.hitormiss.config;
 
 /*
+ * (#)Application.java  0.3.0   05/29/2024
  * (#)Application.java  0.1.0   05/26/2024
  *
  * @author    Jonathan Parker
- * @version   0.1.0
+ * @version   0.3.0
  * @since     0.1.0
  *
  * MIT License
@@ -38,6 +39,14 @@ import java.util.Objects;
  * The application configuration class.
  */
 public final class Application {
+    /** The bucket name for accumulator hits. */
+    @SerializedName("accumulatorBucketNameForHits")
+    private String accumulatorBucketNameForHits;
+
+    /** The bucket name for accumulator misses. */
+    @SerializedName("accumulatorBucketNameForMisses")
+    private String accumulatorBucketNameForMisses;
+
     /** The bucket key prefix. */
     @SerializedName("bucketKeyPrefix")
     private String bucketKeyPrefix;
@@ -45,6 +54,42 @@ public final class Application {
     /** The initial number of buckets to create. */
     @SerializedName("initialNumberOfBuckets")
     private int initialNumberOfBuckets;
+
+    /**
+     * Get the bucket name for accumulator hits.
+     *
+     * @return  java.lang.String
+     */
+    public String getAccumulatorBucketNameForHits() {
+        return this.accumulatorBucketNameForHits;
+    }
+
+    /**
+     * Set the bucket name for accumulator hits.
+     *
+     * @param   accumulatorBucketNameForHits    java.lang.String
+     */
+    public void setAccumulatorBucketNameForHits(final String accumulatorBucketNameForHits) {
+        this.accumulatorBucketNameForHits = accumulatorBucketNameForHits;
+    }
+
+    /**
+     * Get the bucket name for accumulator misses.
+     *
+     * @return  java.lang.String
+     */
+    public String getAccumulatorBucketNameForMisses() {
+        return this.accumulatorBucketNameForMisses;
+    }
+
+    /**
+     * Set the bucket name for accumulator misses.
+     *
+     * @param   accumulatorBucketNameForMisses  java.lang.String
+     */
+    public void setAccumulatorBucketNameForMisses(final String accumulatorBucketNameForMisses) {
+        this.accumulatorBucketNameForMisses = accumulatorBucketNameForMisses;
+    }
 
     /**
      * Get the bucket key prefix.
@@ -96,7 +141,7 @@ public final class Application {
 
         final Application that = (Application) o;
 
-        return this.initialNumberOfBuckets == that.initialNumberOfBuckets && Objects.equals(this.bucketKeyPrefix, that.bucketKeyPrefix);
+        return this.initialNumberOfBuckets == that.initialNumberOfBuckets && Objects.equals(this.bucketKeyPrefix, that.bucketKeyPrefix) && Objects.equals(this.accumulatorBucketNameForHits, that.accumulatorBucketNameForHits) && Objects.equals(this.accumulatorBucketNameForMisses, that.accumulatorBucketNameForMisses);
     }
 
     /**
@@ -109,6 +154,8 @@ public final class Application {
         int result = Objects.hashCode(this.bucketKeyPrefix);
 
         result = 31 * result + this.initialNumberOfBuckets;
+        result = 31 * result + Objects.hashCode(this.accumulatorBucketNameForHits);
+        result = 31 * result + Objects.hashCode(this.accumulatorBucketNameForMisses);
 
         return result;
     }
@@ -121,7 +168,9 @@ public final class Application {
     @Override
     public String toString() {
         return "Application{" +
-                "bucketKeyPrefix='" + this.bucketKeyPrefix + '\'' +
+                "accumulatorBucketNameForHits='" + this.accumulatorBucketNameForHits + '\'' +
+                ", accumulatorBucketNameForMisses='" + this.accumulatorBucketNameForMisses + '\'' +
+                ", bucketKeyPrefix='" + this.bucketKeyPrefix + '\'' +
                 ", initialNumberOfBuckets=" + this.initialNumberOfBuckets +
                 '}';
     }
