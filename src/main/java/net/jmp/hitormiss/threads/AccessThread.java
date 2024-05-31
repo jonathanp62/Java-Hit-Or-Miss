@@ -31,6 +31,9 @@ package net.jmp.hitormiss.threads;
  * SOFTWARE.
  */
 
+import java.util.Objects;
+import java.util.UUID;
+
 import net.jmp.hitormiss.config.Config;
 
 import net.jmp.hitormiss.data.DataElement;
@@ -72,6 +75,10 @@ public final class AccessThread implements Runnable {
     public AccessThread(final Config config, final RedissonClient client, final StatisticsThread statisticsThread) {
         super();
 
+        Objects.requireNonNull(config);
+        Objects.requireNonNull(client);
+        Objects.requireNonNull(statisticsThread);
+
         this.config = config;
         this.client = client;
         this.statisticsThread = statisticsThread;
@@ -95,12 +102,18 @@ public final class AccessThread implements Runnable {
         for (int i = 0; i < counter; i++) {
             // Get the bucket and determine if it is a hit or miss
 
-            final String bucketKey = bucketKeyPrefix + generator.generate();
+            final int keyAsInt = generator.generate();
+            final String bucketKey = bucketKeyPrefix + keyAsInt;
             final RBucket<DataElement> bucket = this.client.getBucket(bucketKey);
             final DataElement dataElement = bucket.get();
 
             if (dataElement != null && this.logger.isDebugEnabled())
                 this.logger.debug("Hit on data element: {}", dataElement.toString());
+            else {
+                this.logger.debug("Miss on key: {}", bucketKey);
+
+                this.persistDataElement(i);
+            }
 
             synchronized (synchronizer) {
                 if (dataElement != null)
@@ -114,6 +127,28 @@ public final class AccessThread implements Runnable {
         }
 
         this.logger.info("Access thread is exiting");
+
+        this.logger.exit();
+    }
+
+    /**
+     * Store the data element that was missed.
+     *
+     * @param   keyAsInt    int
+     */
+    private void persistDataElement(final int keyAsInt) {
+        this.logger.entry(keyAsInt);
+
+        assert keyAsInt > 0;
+
+        final String bucketKeyPrefix = this.config.getApplication().getBucketKeyPrefix();
+        final String bucketKey = bucketKeyPrefix + keyAsInt;
+        final String value = UUID.randomUUID().toString();
+        final RBucket<DataElement> bucket = this.client.getBucket(bucketKey);
+
+        assert bucket.get() == null;
+
+        bucket.set(new DataElement(keyAsInt, value));
 
         this.logger.exit();
     }

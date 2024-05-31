@@ -33,6 +33,8 @@ package net.jmp.hitormiss.threads;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Objects;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.jmp.hitormiss.config.Config;
@@ -75,6 +77,9 @@ public final class StatisticsThread implements Runnable {
      */
     public StatisticsThread(final Config config, final RedissonClient client) {
         super();
+
+        Objects.requireNonNull(config);
+        Objects.requireNonNull(client);
 
         this.config = config;
         this.client = client;
@@ -150,6 +155,9 @@ public final class StatisticsThread implements Runnable {
      */
     private boolean processRequestQueue(final AtomicInteger hits, final AtomicInteger misses) {
         this.logger.entry(hits, misses);
+
+        assert hits != null;
+        assert misses != null;
 
         boolean shutdown = false;
 

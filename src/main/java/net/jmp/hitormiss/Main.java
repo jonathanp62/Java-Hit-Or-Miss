@@ -167,6 +167,8 @@ public final class Main {
     private RedissonClient getClient(final Config config) {
         this.logger.entry(config);
 
+        assert config != null;
+
         final var connector = new Connector(
                 config.getRedis().getHostName(),
                 config.getRedis().getPort(),
@@ -187,6 +189,8 @@ public final class Main {
      */
     private void logServerVersion(final Config config) throws IOException {
         this.logger.entry(config);
+
+        assert config != null;
 
         final StringBuilder sb = new StringBuilder();
         final Process process = new ProcessBuilder(
@@ -249,6 +253,9 @@ public final class Main {
     private void startStatisticsThread(final Config config, final RedissonClient client) {
         this.logger.entry(config, client);
 
+        assert config != null;
+        assert client != null;
+
         this.statisticsThreadObject = new StatisticsThread(config, client);
         this.statisticsThread = new Thread(this.statisticsThreadObject, "statistics");
 
@@ -265,6 +272,9 @@ public final class Main {
      */
     private void runAccessThread(final Config config, final RedissonClient client) {
         this.logger.entry(config, client);
+
+        assert config != null;
+        assert client != null;
 
         final Thread accessThread = new Thread(new AccessThread(config, client, this.statisticsThreadObject), "access");
 

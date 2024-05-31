@@ -31,6 +31,7 @@ package net.jmp.hitormiss.data;
  * SOFTWARE.
  */
 
+import java.util.Objects;
 import java.util.UUID;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,6 +70,9 @@ public final class DataManager {
      */
     public DataManager(final Config config, final RedissonClient client) {
         super();
+
+        Objects.requireNonNull(config);
+        Objects.requireNonNull(client);
 
         this.config = config;
         this.client = client;
@@ -195,6 +199,8 @@ public final class DataManager {
      */
     private boolean deleteBucket(final String key) {
         this.logger.entry(key);
+
+        assert key != null;
 
         boolean result = false;
 

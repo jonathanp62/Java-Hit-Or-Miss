@@ -61,6 +61,12 @@ public final class RandomNumberGenerator {
     public RandomNumberGenerator(final int lowerLimit, final int upperLimit) {
         super();
 
+        if (lowerLimit <= 0)
+            throw new IllegalArgumentException("Lower limit must be greater than 0");
+
+        if (upperLimit <= 0)
+            throw new IllegalArgumentException("Upper limit must be greater than 0");
+
         this.lowerLimit = lowerLimit;
         this.upperLimit = upperLimit;
     }

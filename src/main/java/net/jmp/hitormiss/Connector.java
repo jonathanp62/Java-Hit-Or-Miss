@@ -1,10 +1,11 @@
 package net.jmp.hitormiss;
 
 /*
+ * (#)Connector.java    0.3.0   05/31/2024
  * (#)Connector.java    0.1.0   05/25/2024
  *
  * @author   Jonathan Parker
- * @version  0.1.0
+ * @version  0.3.0
  * @since    0.1.0
  *
  * MIT License
@@ -29,6 +30,8 @@ package net.jmp.hitormiss;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import java.util.Objects;
 
 import org.redisson.Redisson;
 
@@ -67,6 +70,12 @@ final class Connector {
      */
     Connector(final String hostName, final int port, final String protocol) {
         super();
+
+        Objects.requireNonNull(hostName);
+        Objects.requireNonNull(protocol);
+
+        if (port <= 0)
+            throw new IllegalArgumentException("Port must be greater than 0");
 
         this.hostName = hostName;
         this.port = port;
