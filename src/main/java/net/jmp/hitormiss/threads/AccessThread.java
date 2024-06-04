@@ -112,7 +112,7 @@ public final class AccessThread implements Runnable {
             else {
                 this.logger.debug("Miss on key: {}", bucketKey);
 
-                this.persistDataElement(i);
+                this.persistDataElement(keyAsInt);
             }
 
             synchronized (synchronizer) {
