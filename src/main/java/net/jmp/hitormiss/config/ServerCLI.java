@@ -1,10 +1,11 @@
 package net.jmp.hitormiss.config;
 
 /*
+ * (#)ServerCLI.java    0.4.0   06/14/2024
  * (#)ServerCLI.java    0.1.0   05/25/2024
  *
  * @author    Jonathan Parker
- * @version   0.1.0
+ * @version   0.4.0
  * @since     0.1.0
  *
  * MIT License
@@ -35,30 +36,52 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
 
 public final class ServerCLI {
-    /** The command. */
-    @SerializedName("command")
-    private String command;
+    /** The command for Intel architecture. */
+    @SerializedName("command-intel")
+    private String commandIntel;
+
+    /** The command for Apple Silicon architecture. */
+    @SerializedName("command-silicon")
+    private String commandSilicon;
 
     /** The argument. */
     @SerializedName("argument")
     private String argument;
 
     /**
-     * Get the command.
+     * Get the command for Intel.
      *
      * @return  java.lang.String
      */
-    public String getCommand() {
-        return this.command;
+    public String getCommandIntel() {
+        return this.commandIntel;
     }
 
     /**
-     * Set the command.
+     * Set the command for Intel.
      *
-     * @param   command java.lang.String
+     * @param   commandIntel    java.lang.String
      */
-    public void setCommand(final String command) {
-        this.command = command;
+    public void setCommandIntel(final String commandIntel) {
+        this.commandIntel = commandIntel;
+    }
+
+    /**
+     * Get the command for Apple Silicon.
+     *
+     * @return  java.lang.String
+     */
+    public String getCommandSilicon() {
+        return this.commandSilicon;
+    }
+
+    /**
+     * Set the command for Apple Silicon.
+     *
+     * @param   commandSilicon  java.lang.String
+     */
+    public void setCommandSilicon(final String commandSilicon) {
+        this.commandSilicon = commandSilicon;
     }
 
     /**
@@ -87,13 +110,14 @@ public final class ServerCLI {
 
         final ServerCLI serverCLI = (ServerCLI) o;
 
-        return Objects.equals(this.command, serverCLI.command) && Objects.equals(this.argument, serverCLI.argument);
+        return Objects.equals(this.commandIntel, serverCLI.commandIntel) && Objects.equals(this.commandSilicon, serverCLI.commandSilicon) && Objects.equals(this.argument, serverCLI.argument);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(this.command);
+        int result = Objects.hashCode(this.commandIntel);
 
+        result = 31 * result + Objects.hashCode(this.commandSilicon);
         result = 31 * result + Objects.hashCode(this.argument);
 
         return result;
@@ -102,7 +126,8 @@ public final class ServerCLI {
     @Override
     public String toString() {
         return "ServerCLI{" +
-                "command='" + this.command + '\'' +
+                "commandIntel='" + this.commandIntel + '\'' +
+                "commandSilicon='" + this.commandSilicon + '\'' +
                 ", argument='" + this.argument + '\'' +
                 '}';
     }

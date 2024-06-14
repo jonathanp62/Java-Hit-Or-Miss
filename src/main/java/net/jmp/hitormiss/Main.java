@@ -1,12 +1,13 @@
 package net.jmp.hitormiss;
 
 /*
+ * (#)Main.java 0.4.0   06/14/2024
  * (#)Main.java 0.3.0   05/29/2024
  * (#)Main.java 0.2.0   05/27/2024
  * (#)Main.java 0.1.0   05/25/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.4.0
  * @since    0.1.0
  *
  * MIT License
@@ -59,6 +60,7 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
+import net.jmp.hitormiss.config.Architecture;
 import net.jmp.hitormiss.config.Config;
 
 import net.jmp.hitormiss.data.DataManager;
@@ -192,9 +194,20 @@ public final class Main {
 
         assert config != null;
 
+        final var architecture = this.getArchitecture();
+
+        String command;
+
+        if (architecture == Architecture.INTEL)
+            command = config.getRedis().getServerCLI().getCommandIntel();
+        else if (architecture == Architecture.APPLE_SILICON)
+            command = config.getRedis().getServerCLI().getCommandSilicon();
+        else
+            throw new IllegalStateException("Unsupported architecture: " + architecture);
+
         final StringBuilder sb = new StringBuilder();
         final Process process = new ProcessBuilder(
-                config.getRedis().getServerCLI().getCommand(),
+                command,
                 config.getRedis().getServerCLI().getArgument()
         )
                 .redirectErrorStream(true)
@@ -230,7 +243,7 @@ public final class Main {
                     this.logger.warn(
                             "Process failed: {}",
                             process.info().commandLine().orElse(
-                                    config.getRedis().getServerCLI().getCommand() +
+                                    command +
                                             ' ' +
                                             config.getRedis().getServerCLI().getArgument()
                             )
@@ -314,6 +327,56 @@ public final class Main {
         }
 
         this.logger.exit();
+    }
+
+    /**
+     * Return the architecture.
+     *
+     * @return  net.jmp.demo.redis.config.Architecture
+     * @throws  java.io.IOException
+     */
+    private Architecture getArchitecture() throws IOException {
+        this.logger.entry();
+
+        Architecture result = Architecture.INTEL;
+
+        final StringBuilder sb = new StringBuilder();
+        final Process process = new ProcessBuilder(
+                "/usr/sbin/sysctl",
+                "-n",
+                "machdep.cpu.brand_string"
+        )
+                .redirectErrorStream(true)
+                .start();
+
+        try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+
+            while ((line = processOutputReader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            process.waitFor();
+
+            if (process.exitValue() == 0) {
+                if (sb.toString().equals("Apple M2 Max")) {
+                    result = Architecture.APPLE_SILICON;
+                } else if (sb.toString().equals("Intel(R) Core(TM) i7-4578U CPU @ 3.00GHz")) {
+                    result = Architecture.INTEL;
+                }
+            } else {
+                if (this.logger.isWarnEnabled()) {
+                    this.logger.warn("Process failed: {}", process.info().commandLine().orElse("/usr/sbin/sysctl -n machdep.cpu.brand_string"));
+                }
+            }
+        } catch (final InterruptedException ie) {
+            this.logger.catching(ie);
+            Thread.currentThread().interrupt();     // Restore the interrupt status
+        }
+
+        this.logger.exit(result);
+
+        return result;
     }
 
     /**

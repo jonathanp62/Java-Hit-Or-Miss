@@ -10,7 +10,8 @@
     "port": 6379,
     "protocol": "redis://",
     "server-cli": {
-      "command": "/usr/local/Caskroom/redis-stack-server/7.2.0-v10/bin/redis-server",
+      "command-intel": "/usr/local/Caskroom/redis-stack-server/7.2.0-v10/bin/redis-server",
+      "command-silicon": "/opt/homebrew/Caskroom/redis-stack-server/7.2.0-v11/bin/redis-server",
       "argument": "--version"
     }
   }
