@@ -33,6 +33,8 @@
  * SOFTWARE.
  */
 
+// Requires -PmyArchitecture=intel or -PmyArchitecture=silicon to work correctly
+
 plugins {
     id 'application'
     id 'java-library'
@@ -71,7 +73,13 @@ dependencies {
     runtimeOnly         libs.ch.qos.logback.logback.core
     implementation      libs.com.google.code.gson.gson
     implementation      libs.org.redisson.redisson
-    runtimeOnly         ("io.netty:netty-resolver-dns-native-macos:4.1.109.Final:osx-x86_64")
+
+    if (myArchitecture == "silicon") {
+        runtimeOnly         ("io.netty:netty-resolver-dns-native-macos:4.1.109.Final:osx-aarch_64")
+    } else {
+        runtimeOnly         ("io.netty:netty-resolver-dns-native-macos:4.1.109.Final:osx-x86_64")
+    }
+
     implementation      libs.org.slf4j.slf4j.api
     implementation      libs.org.slf4j.slf4j.ext
     testImplementation  libs.junit.junit
