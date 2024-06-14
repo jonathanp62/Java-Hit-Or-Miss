@@ -107,11 +107,13 @@ public final class AccessThread implements Runnable {
             final RBucket<DataElement> bucket = this.client.getBucket(bucketKey);
             final DataElement dataElement = bucket.get();
 
-            if (dataElement != null && this.logger.isDebugEnabled())
-                this.logger.debug("Hit on data element: {}", dataElement.toString());
+            if (dataElement != null) {
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug("Hit on data element: {}", dataElement.toString());
+                }
+            }
             else {
                 this.logger.debug("Miss on key: {}", bucketKey);
-
                 this.persistDataElement(keyAsInt);
             }
 

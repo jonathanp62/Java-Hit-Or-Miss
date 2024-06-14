@@ -17,4 +17,4 @@ The configuration is expressed in JSON and is supplied in config/config.json in 
 
 Logging is achieved using the SLF4J facade over Logback. The logging configuration is supplied in config/logback.xml.
 
-=== Current version: 0.4.0.
+=== Current version: 0.4.1.
