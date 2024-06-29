@@ -46,16 +46,7 @@ public final class RedisError extends Error {
      * The default constructor.
      */
     private RedisError() {
-        throw new UnsupportedOperationException("Please provide a message and a throwable");
-    }
-
-    /**
-     * A constructor that takes a message.
-     *
-     * @param   message java.lang.String
-     */
-    private RedisError(final String message) {
-        throw new UnsupportedOperationException("Please provide a throwable");
+        throw new UnsupportedOperationException("The default constructor should not be used");
     }
 
     /**

@@ -51,17 +51,17 @@ import net.jmp.hitormiss.threads.AccessThread;
 
 import net.jmp.hitormiss.util.Synchronizer;
 
-import org.redisson.api.RedissonClient;
-
-import org.slf4j.LoggerFactory;
-
-import org.slf4j.ext.XLogger;
-
 import net.jmp.hitormiss.config.Config;
 
 import net.jmp.hitormiss.data.DataManager;
 
 import net.jmp.hitormiss.threads.StatisticsThread;
+
+import org.redisson.api.RedissonClient;
+
+import org.slf4j.LoggerFactory;
+
+import org.slf4j.ext.XLogger;
 
 /*
  * The application's main class.
@@ -103,36 +103,65 @@ public final class Main {
             if (ProcessUtility.isRedisProcessRunning(appConfig.getProcessUtility().getRedisServer()) ||
                 ProcessUtility.isRedisProcessRunning(appConfig.getProcessUtility().getRedisStackServer())) {
                 try {
-                    /* main */
                     client = this.getClient(appConfig);
 
-                    this.logServerVersion(appConfig);
-
-                    this.dataManager = new DataManager(appConfig, client);
-
-                    this.dataManager.setupData();
-                    this.startStatisticsThread();
-                    this.runAccessThread(appConfig, client);
+                    this.runBody(client, appConfig);
                 } catch (final IOException ioe) {
                     this.logger.catching(ioe);
                 } finally {
-                    /* cleanup */
-                    this.stopStatisticsThread();
-
-                    // Log the contents of the accumulator buckets
-
-                    if (this.dataManager != null)
-                        this.dataManager.teardownData();
-
-                    if (client != null) {
-                        Connector.disconnect(client);
-
-                        if (client.isShutdown())
-                            this.logger.info("Redisson client has shut down");
-                    }
+                    this.runCleanup(client);
                 }
             }
         }, () -> this.logger.error("No configuration found for {}", Name.NAME_STRING));
+
+        this.logger.exit();
+    }
+
+    /**
+     * Run the main body of the application.
+     *
+     * @param   client  org.redisson.api.RedissonClient
+     * @param   config  net.jmp.hitormiss.config.Config
+     * @throws          java.io.IOException When an I/O exception occurs
+     */
+    private void runBody(final RedissonClient client, final Config config) throws IOException {
+        this.logger.entry(client, config);
+
+        assert client != null;
+        assert config != null;
+
+        this.logServerVersion(config);
+
+        this.dataManager = new DataManager(config, client);
+
+        this.dataManager.setupData();
+        this.startStatisticsThread();
+        this.runAccessThread(config, client);
+
+        this.logger.exit();
+    }
+
+    /**
+     * Run the application cleanup.
+     *
+     * @param   client  org.redisson.api.RedissonClient
+     */
+    private void runCleanup(final RedissonClient client) {
+        this.logger.entry(client);
+
+        this.stopStatisticsThread();
+
+        // Log the contents of the accumulator buckets
+
+        if (this.dataManager != null)
+            this.dataManager.teardownData();
+
+        if (client != null) {
+            Connector.disconnect(client);
+
+            if (client.isShutdown())
+                this.logger.info("Redisson client has shut down");
+        }
 
         this.logger.exit();
     }
@@ -190,15 +219,14 @@ public final class Main {
      * Log the server version.
      *
      * @param   config  net.jmp.hitormiss.config.Config
+     * @throws          java.io.IOException When an I/O exception occurs
      */
     private void logServerVersion(final Config config) throws IOException {
         this.logger.entry(config);
 
         assert config != null;
 
-        final var redisServerVersionLogger = new RedisServerVersionLogger(config);
-
-        redisServerVersionLogger.logRedisServerVersion();
+        new RedisServerVersionLogger(config).logRedisServerVersion();
 
         this.logger.exit();
     }

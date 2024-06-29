@@ -62,9 +62,7 @@ public class RedisServerVersionLogger {
      * The default constructor.
      */
     private RedisServerVersionLogger() {
-        super();
-
-        this.config = null;
+        throw new UnsupportedOperationException("The default constructor should not be used");
     }
 
     /**
@@ -233,7 +231,7 @@ public class RedisServerVersionLogger {
                 } else if (sb.toString().equals("Intel(R) Core(TM) i7-4578U CPU @ 3.00GHz")) {
                     result = Architecture.INTEL;
                 } else {
-                    throw new IllegalStateException("Unsupported architecture: " + sb.toString());
+                    throw new IllegalStateException("Unsupported architecture: " + sb);
                 }
             } else {
                 result = Architecture.NOT_AVAILABLE;

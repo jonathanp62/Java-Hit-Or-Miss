@@ -110,8 +110,6 @@ public final class StatisticsThread implements Runnable {
                 this.synchronizer.setNotified(false);
 
                 shutdown = this.processRequestQueue(hits, misses);
-
-                // Update accumulator buckets
             }
         }
 
