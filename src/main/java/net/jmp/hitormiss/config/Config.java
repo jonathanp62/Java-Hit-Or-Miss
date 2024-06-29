@@ -1,10 +1,11 @@
 package net.jmp.hitormiss.config;
 
 /*
+ * (#)Config.java   0.5.0   06/29/2024
  * (#)Config.java   0.1.0   05/25/2024
  *
  * @author    Jonathan Parker
- * @version   0.1.0
+ * @version   0.5.0
  * @since     0.1.0
  *
  * MIT License
@@ -42,6 +43,10 @@ public final class Config {
     @SerializedName("application")
     private Application application;
 
+    /** The process utility component. @since 0.5.0 */
+    @SerializedName("process-utility")
+    private ProcessUtility processUtility;
+
     /** The Redis component. */
     @SerializedName("redis")
     private Redis redis;
@@ -62,6 +67,26 @@ public final class Config {
      */
     public void setRedis(final Redis redis) {
         this.redis = redis;
+    }
+
+    /**
+     * Set the process utility component.
+     *
+     * @param   processUtility  net.jmp.hitormiss.config.ProcessUtility
+     * @since                   0.5.0
+     */
+    public void setProcessUtility(final ProcessUtility processUtility) {
+        this.processUtility = processUtility;
+    }
+
+    /**
+     * Get the process utility component
+     *
+     * @return  net.jmp.hitormiss.config.ProcessUtility
+     * @since   0.5.0
+     */
+    public ProcessUtility getProcessUtility() {
+        return this.processUtility;
     }
 
     /**
@@ -96,7 +121,7 @@ public final class Config {
 
         final Config config = (Config) o;
 
-        return Objects.equals(this.application, config.application) && Objects.equals(this.redis, config.redis);
+        return Objects.equals(this.application, config.application) && Objects.equals(this.processUtility, config.processUtility) && Objects.equals(this.redis, config.redis);
     }
 
     /**
@@ -108,6 +133,7 @@ public final class Config {
     public int hashCode() {
         int result = Objects.hashCode(this.application);
 
+        result = 31 * result + Objects.hashCode(this.processUtility);
         result = 31 * result + Objects.hashCode(this.redis);
 
         return result;
@@ -122,6 +148,7 @@ public final class Config {
     public String toString() {
         return "Config{" +
                 "application=" + this.application +
+                ", processUtility=" + this.processUtility +
                 ", redis=" + this.redis +
                 '}';
     }
