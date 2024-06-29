@@ -209,6 +209,7 @@ public final class Main {
         switch (architecture) {
             case Architecture.INTEL -> command = config.getRedis().getServerCLI().getCommandIntel();
             case Architecture.APPLE_SILICON -> command = config.getRedis().getServerCLI().getCommandSilicon();
+            case NOT_AVAILABLE -> throw new IllegalStateException("Architecture is not available");
             default -> throw new IllegalStateException("Unsupported architecture: " + architecture);
         }
 
@@ -343,7 +344,7 @@ public final class Main {
     private Architecture getArchitecture() throws IOException {
         this.logger.entry();
 
-        Architecture result = Architecture.INTEL;
+        Architecture result;
 
         final StringBuilder sb = new StringBuilder();
         final Process process = new ProcessBuilder(
@@ -368,13 +369,19 @@ public final class Main {
                     result = Architecture.APPLE_SILICON;
                 } else if (sb.toString().equals("Intel(R) Core(TM) i7-4578U CPU @ 3.00GHz")) {
                     result = Architecture.INTEL;
+                } else {
+                    throw new IllegalStateException("Unsupported architecture: " + sb.toString());
                 }
             } else {
+                result = Architecture.NOT_AVAILABLE;
+
                 if (this.logger.isWarnEnabled()) {
                     this.logger.warn("Process failed: {}", process.info().commandLine().orElse("/usr/sbin/sysctl -n machdep.cpu.brand_string"));
                 }
             }
         } catch (final InterruptedException ie) {
+            result = Architecture.NOT_AVAILABLE;
+
             this.logger.catching(ie);
             Thread.currentThread().interrupt();     // Restore the interrupt status
         }

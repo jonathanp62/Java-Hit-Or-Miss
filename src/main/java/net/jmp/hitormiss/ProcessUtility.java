@@ -33,6 +33,7 @@ package net.jmp.hitormiss;
 import java.io.IOException;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,8 @@ public final class ProcessUtility {
      */
     static boolean isRedisProcessRunning(final String pattern) {
         logger.entry(pattern);
+
+        Objects.requireNonNull(pattern);
 
         boolean result = false;
 
