@@ -165,14 +165,7 @@ public class RedisServerVersionLogger {
         assert this.config != null;
 
         if (this.logger.isWarnEnabled()) {
-            this.logger.warn(
-                    "Process failed: {}",
-                    process.info().commandLine().orElse(
-                            command +
-                                    ' ' +
-                                    config.getRedis().getServerCLI().getArgument()
-                    )
-            );
+            this.logger.warn(this.getProcessFailedText(process, command + ' ' + this.config.getRedis().getServerCLI().getArgument()));
         }
 
         this.logger.exit();
@@ -246,7 +239,7 @@ public class RedisServerVersionLogger {
                 result = Architecture.NOT_AVAILABLE;
 
                 if (this.logger.isWarnEnabled()) {
-                    this.logger.warn("Process failed: {}", process.info().commandLine().orElse("/usr/sbin/sysctl -n machdep.cpu.brand_string"));
+                    this.logger.warn(this.getProcessFailedText(process, "/usr/sbin/sysctl -n machdep.cpu.brand_string"));
                 }
             }
         } catch (final InterruptedException ie) {
@@ -255,6 +248,26 @@ public class RedisServerVersionLogger {
             this.logger.catching(ie);
             Thread.currentThread().interrupt();     // Restore the interrupt status
         }
+
+        this.logger.exit(result);
+
+        return result;
+    }
+
+    /**
+     * Return the full text of a process failed message.
+     *
+     * @param   process     java.lang.Process
+     * @param   orElseText  java.lang.String
+     * @return              java.lang.String
+     */
+    private String getProcessFailedText(final Process process, final String orElseText) {
+        this.logger.entry(process, orElseText);
+
+        assert process != null;
+        assert orElseText != null;
+
+        final String result = "Process failed: " + process.info().commandLine().orElse(orElseText);
 
         this.logger.exit(result);
 
