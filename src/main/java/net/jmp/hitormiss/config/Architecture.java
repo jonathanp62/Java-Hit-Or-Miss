@@ -1,7 +1,7 @@
 package net.jmp.hitormiss.config;
 
 /*
- * (#)Architecture.java 0.5.0   06/39/2024
+ * (#)Architecture.java 0.5.0   06/29/2024
  * (#)Architecture.java 0.4.0   06/14/2024
  *
  * @author   Jonathan Parker

@@ -36,17 +36,13 @@ package net.jmp.hitormiss;
 
 import com.google.gson.Gson;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import java.util.Deque;
 import java.util.Optional;
-
-import java.util.regex.Pattern;
 
 import net.jmp.hitormiss.data.RequestQueueElement;
 import net.jmp.hitormiss.data.RequestType;
@@ -61,7 +57,6 @@ import org.slf4j.LoggerFactory;
 
 import org.slf4j.ext.XLogger;
 
-import net.jmp.hitormiss.config.Architecture;
 import net.jmp.hitormiss.config.Config;
 
 import net.jmp.hitormiss.data.DataManager;
@@ -77,9 +72,6 @@ public final class Main {
 
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
-
-    /** A regular expression pattern to get the version from the 'redis-server --version' command. */
-    private final Pattern versionPattern = Pattern.compile("(?i)\\.*v=(?<version>.+?)\\s(?-i)");
 
     /** The data manager. */
     private DataManager dataManager;
@@ -111,6 +103,7 @@ public final class Main {
             if (ProcessUtility.isRedisProcessRunning(appConfig.getProcessUtility().getRedisServer()) ||
                 ProcessUtility.isRedisProcessRunning(appConfig.getProcessUtility().getRedisStackServer())) {
                 try {
+                    /* main */
                     client = this.getClient(appConfig);
 
                     this.logServerVersion(appConfig);
@@ -123,6 +116,7 @@ public final class Main {
                 } catch (final IOException ioe) {
                     this.logger.catching(ioe);
                 } finally {
+                    /* cleanup */
                     this.stopStatisticsThread();
 
                     // Log the contents of the accumulator buckets
@@ -202,65 +196,9 @@ public final class Main {
 
         assert config != null;
 
-        final var architecture = this.getArchitecture();
+        final var redisServerVersionLogger = new RedisServerVersionLogger(config);
 
-        String command;
-
-        switch (architecture) {
-            case Architecture.INTEL -> command = config.getRedis().getServerCLI().getCommandIntel();
-            case Architecture.APPLE_SILICON -> command = config.getRedis().getServerCLI().getCommandSilicon();
-            case NOT_AVAILABLE -> throw new IllegalStateException("Architecture is not available");
-            default -> throw new IllegalStateException("Unsupported architecture: " + architecture);
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        final Process process = new ProcessBuilder(
-                command,
-                config.getRedis().getServerCLI().getArgument()
-        )
-                .redirectErrorStream(true)
-                .start();
-
-        try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-
-            while ((line = processOutputReader.readLine()) != null) {
-                sb.append(line);
-            }
-
-            process.waitFor();
-
-            if (process.exitValue() == 0) {
-                final var matcher = this.versionPattern.matcher(sb.toString());
-
-                if (matcher.find()) {
-                    final var version = matcher.group("version");
-
-                    if (version != null)
-                        this.logger.info("Redis server {}", version);
-                    else {
-                        if (this.logger.isWarnEnabled())
-                            this.logger.warn("Group 'version' not found in {}", sb.toString());
-                    }
-                } else {
-                    if (this.logger.isWarnEnabled())
-                        this.logger.warn("No match on {}", sb.toString());
-                }
-            } else {
-                if (this.logger.isWarnEnabled())
-                    this.logger.warn(
-                            "Process failed: {}",
-                            process.info().commandLine().orElse(
-                                    command +
-                                            ' ' +
-                                            config.getRedis().getServerCLI().getArgument()
-                            )
-                    );
-            }
-        } catch (final InterruptedException ie) {
-            this.logger.catching(ie);
-            Thread.currentThread().interrupt();     // Restore the interrupt status
-        }
+        redisServerVersionLogger.logRedisServerVersion();
 
         this.logger.exit();
     }
@@ -333,62 +271,6 @@ public final class Main {
         }
 
         this.logger.exit();
-    }
-
-    /**
-     * Return the architecture.
-     *
-     * @return  net.jmp.demo.redis.config.Architecture
-     * @throws  java.io.IOException
-     */
-    private Architecture getArchitecture() throws IOException {
-        this.logger.entry();
-
-        Architecture result;
-
-        final StringBuilder sb = new StringBuilder();
-        final Process process = new ProcessBuilder(
-                "/usr/sbin/sysctl",
-                "-n",
-                "machdep.cpu.brand_string"
-        )
-                .redirectErrorStream(true)
-                .start();
-
-        try (final var processOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-
-            while ((line = processOutputReader.readLine()) != null) {
-                sb.append(line);
-            }
-
-            process.waitFor();
-
-            if (process.exitValue() == 0) {
-                if (sb.toString().equals("Apple M2 Max")) {
-                    result = Architecture.APPLE_SILICON;
-                } else if (sb.toString().equals("Intel(R) Core(TM) i7-4578U CPU @ 3.00GHz")) {
-                    result = Architecture.INTEL;
-                } else {
-                    throw new IllegalStateException("Unsupported architecture: " + sb.toString());
-                }
-            } else {
-                result = Architecture.NOT_AVAILABLE;
-
-                if (this.logger.isWarnEnabled()) {
-                    this.logger.warn("Process failed: {}", process.info().commandLine().orElse("/usr/sbin/sysctl -n machdep.cpu.brand_string"));
-                }
-            }
-        } catch (final InterruptedException ie) {
-            result = Architecture.NOT_AVAILABLE;
-
-            this.logger.catching(ie);
-            Thread.currentThread().interrupt();     // Restore the interrupt status
-        }
-
-        this.logger.exit(result);
-
-        return result;
     }
 
     /**

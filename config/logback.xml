@@ -50,6 +50,9 @@
     <logger name="net.jmp.hitormiss.ProcessUtility" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
+    <logger name="net.jmp.hitormiss.RedisServerVersionLogger" additivity="false" level="info">
+        <appender-ref ref="MAIN" />
+    </logger>
     <logger name="net.jmp.hitormiss.data.DataManager" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
