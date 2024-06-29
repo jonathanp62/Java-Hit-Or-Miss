@@ -1,6 +1,7 @@
 package net.jmp.hitormiss;
 
 /*
+ * (#)Version.java  0.5.0   06/29/2024
  * (#)Version.java  0.4.1   06/14/2024
  * (#)Version.java  0.4.0   06/14/2024
  * (#)Version.java  0.3.0   05/28/2024
@@ -8,7 +9,7 @@ package net.jmp.hitormiss;
  * (#)Version.java  0.1.0   05/25/2024
  *
  * @author   Jonathan Parker
- * @version  0.4.1
+ * @version  0.5.0
  * @since    0.1.0
  *
  * MIT License
@@ -39,7 +40,7 @@ package net.jmp.hitormiss;
  */
 public final class Version {
     /** The version. */
-    static final String VERSION_STRING = "0.4.1";
+    static final String VERSION_STRING = "0.5.0";
 
     /**
      * The default constructor.
