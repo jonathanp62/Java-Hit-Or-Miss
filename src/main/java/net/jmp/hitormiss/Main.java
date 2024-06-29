@@ -1,13 +1,14 @@
 package net.jmp.hitormiss;
 
 /*
+ * (#)Main.java 0.5.0   06/29/2024
  * (#)Main.java 0.4.0   06/14/2024
  * (#)Main.java 0.3.0   05/29/2024
  * (#)Main.java 0.2.0   05/27/2024
  * (#)Main.java 0.1.0   05/25/2024
  *
  * @author   Jonathan Parker
- * @version  0.4.0
+ * @version  0.5.0
  * @since    0.1.0
  *
  * MIT License
@@ -71,8 +72,8 @@ import net.jmp.hitormiss.threads.StatisticsThread;
  * The application's main class.
  */
 public final class Main {
-    /** The configuration file name. */
-    private static final String APP_CONFIG_FILE = "config/config.json";
+    /** The default configuration file name. */
+    private static final String DEFAULT_APP_CONFIG_FILE = "config/config.json";
 
     /** The logger. */
     private final XLogger logger = new XLogger(LoggerFactory.getLogger(this.getClass().getName()));
@@ -102,39 +103,42 @@ public final class Main {
     private void run() {
         this.logger.entry();
 
-        this.logger.info("Hit-or-Miss {}", Version.VERSION_STRING);
+        this.logger.info("{} {}", Name.NAME_STRING, Version.VERSION_STRING);
 
         this.getAppConfig().ifPresentOrElse(appConfig -> {
             RedissonClient client = null;
 
-            try {
-                client = this.getClient(appConfig);
+            if (ProcessUtility.isRedisProcessRunning(appConfig.getProcessUtility().getRedisServer()) ||
+                ProcessUtility.isRedisProcessRunning(appConfig.getProcessUtility().getRedisStackServer())) {
+                try {
+                    client = this.getClient(appConfig);
 
-                this.logServerVersion(appConfig);
+                    this.logServerVersion(appConfig);
 
-                this.dataManager = new DataManager(appConfig, client);
+                    this.dataManager = new DataManager(appConfig, client);
 
-                this.dataManager.setupData();
-                this.startStatisticsThread(appConfig, client);
-                this.runAccessThread(appConfig, client);
-            } catch (final IOException ioe) {
-                this.logger.catching(ioe);
-            } finally {
-                this.stopStatisticsThread();
+                    this.dataManager.setupData();
+                    this.startStatisticsThread();
+                    this.runAccessThread(appConfig, client);
+                } catch (final IOException ioe) {
+                    this.logger.catching(ioe);
+                } finally {
+                    this.stopStatisticsThread();
 
-                // Log the contents of the accumulator buckets
+                    // Log the contents of the accumulator buckets
 
-                if (this.dataManager != null)
-                    this.dataManager.teardownData();
+                    if (this.dataManager != null)
+                        this.dataManager.teardownData();
 
-                if (client != null) {
-                    Connector.disconnect(client);
+                    if (client != null) {
+                        Connector.disconnect(client);
 
-                    if (client.isShutdown())
-                        this.logger.info("Redisson client has shut down");
+                        if (client.isShutdown())
+                            this.logger.info("Redisson client has shut down");
+                    }
                 }
             }
-        }, () -> this.logger.error("No configuration found for Hit-or-Miss"));
+        }, () -> this.logger.error("No configuration found for {}", Name.NAME_STRING));
 
         this.logger.exit();
     }
@@ -142,15 +146,19 @@ public final class Main {
     /**
      * Get the application configuration.
      *
-     * @return  java.lang.Optional&lt;net.jmp.hitormiss.Config&gt;
+     * @return  java.lang.Optional&lt;net.jmp.hitormiss.config.Config&gt;
      */
     private Optional<Config> getAppConfig() {
         this.logger.entry();
 
+        final String configFileName = System.getProperty("app.configurationFile", DEFAULT_APP_CONFIG_FILE);
+
         Config appConfig = null;
 
+        this.logger.info("Reading the configuration from: {}", configFileName);
+
         try {
-            appConfig = new Gson().fromJson(Files.readString(Paths.get(APP_CONFIG_FILE)), Config.class);
+            appConfig = new Gson().fromJson(Files.readString(Paths.get(configFileName)), Config.class);
         } catch (final IOException ioe) {
             this.logger.catching(ioe);
         }
@@ -163,7 +171,7 @@ public final class Main {
     /**
      * Get the Redisson client.
      *
-     * @param   config  net.jmp.hitormiss.Config
+     * @param   config  net.jmp.hitormiss.config.Config
      * @return          org.redisson.api.RedissonClient
      */
     private RedissonClient getClient(final Config config) {
@@ -187,7 +195,7 @@ public final class Main {
     /**
      * Log the server version.
      *
-     * @param   config  net.jmp.hitormiss.Config
+     * @param   config  net.jmp.hitormiss.config.Config
      */
     private void logServerVersion(final Config config) throws IOException {
         this.logger.entry(config);
@@ -198,12 +206,11 @@ public final class Main {
 
         String command;
 
-        if (architecture == Architecture.INTEL)
-            command = config.getRedis().getServerCLI().getCommandIntel();
-        else if (architecture == Architecture.APPLE_SILICON)
-            command = config.getRedis().getServerCLI().getCommandSilicon();
-        else
-            throw new IllegalStateException("Unsupported architecture: " + architecture);
+        switch (architecture) {
+            case Architecture.INTEL -> command = config.getRedis().getServerCLI().getCommandIntel();
+            case Architecture.APPLE_SILICON -> command = config.getRedis().getServerCLI().getCommandSilicon();
+            default -> throw new IllegalStateException("Unsupported architecture: " + architecture);
+        }
 
         final StringBuilder sb = new StringBuilder();
         final Process process = new ProcessBuilder(
@@ -259,17 +266,11 @@ public final class Main {
 
     /**
      * Start the statistics thread.
-     *
-     * @param   config  net.jmp.hitormiss.config.Config
-     * @param   client  org.redisson.api.RedissonClient
      */
-    private void startStatisticsThread(final Config config, final RedissonClient client) {
-        this.logger.entry(config, client);
+    private void startStatisticsThread() {
+        this.logger.entry();
 
-        assert config != null;
-        assert client != null;
-
-        this.statisticsThreadObject = new StatisticsThread(config, client);
+        this.statisticsThreadObject = new StatisticsThread();
         this.statisticsThread = new Thread(this.statisticsThreadObject, "statistics");
 
         this.statisticsThread.start();
@@ -309,21 +310,25 @@ public final class Main {
     private void stopStatisticsThread() {
         this.logger.entry();
 
-        final Synchronizer synchronizer = this.statisticsThreadObject.getSynchronizer();
-        final Deque<RequestQueueElement> requestQueue = this.statisticsThreadObject.getRequestQueue();
+        if (this.statisticsThreadObject != null) {
+            final Synchronizer synchronizer = this.statisticsThreadObject.getSynchronizer();
+            final Deque<RequestQueueElement> requestQueue = this.statisticsThreadObject.getRequestQueue();
 
-        synchronized (synchronizer) {
-            requestQueue.offer(new RequestQueueElement(RequestType.SHUTDOWN));
+            synchronized (synchronizer) {
+                requestQueue.offer(new RequestQueueElement(RequestType.SHUTDOWN));
 
-            synchronizer.setNotified(true);
-            synchronizer.notifyAll();
+                synchronizer.setNotified(true);
+                synchronizer.notifyAll();
+            }
         }
 
-        try {
-            this.statisticsThread.join();
-        } catch (final InterruptedException ie) {
-            this.logger.catching(ie);
-            Thread.currentThread().interrupt();
+        if (this.statisticsThread != null) {
+            try {
+                this.statisticsThread.join();
+            } catch (final InterruptedException ie) {
+                this.logger.catching(ie);
+                Thread.currentThread().interrupt();
+            }
         }
 
         this.logger.exit();

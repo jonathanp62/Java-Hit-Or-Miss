@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
+ (#)logback.xml 0.5.0   06/29/2024
  (#)logback.xml 0.4.1   06/14/2024
  (#)logback.xml 0.3.0   05/28/2024
  (#)logback.xml 0.2.0   05/27/2024
  (#)logback.xml 0.1.0   05/25/2024
 
  @author   Jonathan Parker
- @version  0.4.1
+ @version  0.5.0
  @since    0.1.0
 
  MIT License
@@ -46,6 +47,9 @@
     <logger name="net.jmp.hitormiss.Main" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
+    <logger name="net.jmp.hitormiss.ProcessUtility" additivity="false" level="info">
+        <appender-ref ref="MAIN" />
+    </logger>
     <logger name="net.jmp.hitormiss.data.DataManager" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
@@ -58,6 +62,7 @@
     <logger name="net.jmp.hitormiss.util.RandomNumberGenerator" additivity="false" level="info">
         <appender-ref ref="MAIN" />
     </logger>
+
     <logger name="org.redisson.connection.ConnectionsHolder" additivity="false" level="off">
         <appender-ref ref="MAIN" />
     </logger>

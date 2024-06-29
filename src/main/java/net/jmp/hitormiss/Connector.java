@@ -1,11 +1,12 @@
 package net.jmp.hitormiss;
 
 /*
+ * (#)Connector.java    0.5.0   06/29/2024
  * (#)Connector.java    0.3.0   05/31/2024
  * (#)Connector.java    0.1.0   05/25/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.5.0
  * @since    0.1.0
  *
  * MIT License
@@ -36,6 +37,8 @@ import java.util.Objects;
 import org.redisson.Redisson;
 
 import org.redisson.api.RedissonClient;
+
+import org.redisson.client.RedisConnectionException;
 
 import org.redisson.config.Config;
 
@@ -94,7 +97,13 @@ final class Connector {
 
         config.useSingleServer().setAddress(this.protocol + this.hostName + ":" + this.port);
 
-        final var client = Redisson.create(config);
+        RedissonClient client;
+
+        try {
+            client = Redisson.create(config);
+        } catch (final RedisConnectionException rce) {
+            throw new RedisError("Failed to connect to Redis: " + this.protocol + this.hostName + ":" + this.port, rce);
+        }
 
         this.logger.info("Redisson client ID: {}", client.getId());
 

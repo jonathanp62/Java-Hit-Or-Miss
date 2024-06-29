@@ -1,11 +1,12 @@
 package net.jmp.hitormiss.threads;
 
 /*
+ * (#)StatisticsThread.java 0.5.0   06/29/2024
  * (#)StatisticsThread.java 0.3.0   05/29/2024
  * (#)StatisticsThread.java 0.2.0   05/27/2024
  *
  * @author   Jonathan Parker
- * @version  0.3.0
+ * @version  0.5.0
  * @since    0.2.0
  *
  * MIT License
@@ -33,18 +34,13 @@ package net.jmp.hitormiss.threads;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Objects;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
-import net.jmp.hitormiss.config.Config;
 
 import net.jmp.hitormiss.data.RequestQueueElement;
 import net.jmp.hitormiss.data.RequestType;
 
 import net.jmp.hitormiss.util.Synchronizer;
-
-import org.redisson.api.RedissonClient;
 
 import org.slf4j.LoggerFactory;
 
@@ -63,26 +59,11 @@ public final class StatisticsThread implements Runnable {
     /** The request queue. */
     private final Deque<RequestQueueElement> requestQueue = new ArrayDeque<>();
 
-    /** The configuration. */
-    private final Config config;
-
-    /** The Redisson client. */
-    private final RedissonClient client;
-
     /**
      * The constructor.
-     *
-     * @param   config  net.jmp.hitormiss.config.Config
-     * @param   client  org.redisson.api.RedissonClient
      */
-    public StatisticsThread(final Config config, final RedissonClient client) {
+    public StatisticsThread() {
         super();
-
-        Objects.requireNonNull(config);
-        Objects.requireNonNull(client);
-
-        this.config = config;
-        this.client = client;
     }
 
     /**

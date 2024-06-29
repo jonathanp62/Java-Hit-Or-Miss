@@ -4,14 +4,24 @@ A demonstration program of capturing cache hits and misses with a minimum of per
 
 == Configuration Settings
 
-The configuration is expressed in JSON and is supplied in config/config.json in the 'redis' section.
+The configuration is expressed in JSON and is supplied in config/config.json in the following sections:
 
-* *hostname* The name of the host that the Redis server is listening on
-* *port* The number of the port that the Redis server is listening on
-* *protocol* The protocol for the Redis connect string, typically "redis://"
-* *server-cli*
-** *command* The fully qualified path name to the 'redis-server' command
-** *argument* The version argument for 'redis-server'
+* *application*
+** *accumulatorBucketNameForHits* The name of the Redis accumulator bucket for the number of hits
+** *accumulatorBucketNameForMisses* The name of the Redis accumulator bucket for the number of misses
+** *bucketKeyPrefix* The prefix for names of buckets (the bucket name is a UUID)
+** *initialNumberOfBuckets* The initial number of buckets to create, typically 1000
+* *process-utility*
+** *redis-server* The name of the regular Redis server process
+** *redis-stack-server* The name of the Redis stack server process
+* *redis*
+** *hostname* The name of the host that the Redis (stack) server is listening on
+** *port* The number of the port that the Redis (stack) server is listening on
+** *protocol* The protocol for the Redis connect string, typically "redis://"
+** *server-cli*
+*** *command-intel* The fully qualified path name to the 'redis-server' command on Intel architectures
+*** *command-silicon* The fully qualified path name to the 'redis-server' command on Apple Silicon architectures
+*** *argument* The version argument for 'redis-server'
 
 == Logging
 
